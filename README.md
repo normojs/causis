@@ -1,135 +1,122 @@
-好的，这个思路很清晰。在深入具体实现之前，我们先完成 Causis 的顶层设计，对齐架构全貌和功能边界，后续再逐项深入技术选型和落地方案。
+# Causis
 
----
+[中文 README](README-zh.md)
 
-## Causis 架构全景图
+Causis is a Rust-first causal knowledge engine for explainable and auditable enterprise decisions.
 
+It is designed as **Causal as a Service** infrastructure: a foundation that developers, ISVs, and system integrators can embed to build decision applications with formal causal reasoning, multi-source data governance, and full evidence provenance.
+
+> Every decision should have a trusted core.
+
+## Status
+
+Causis is currently in the architecture and planning stage. This repository contains product strategy, module design, competitor analysis, and implementation planning documents. Runtime code and package scaffolding have not been added yet.
+
+## What Causis Is
+
+Causis is not only a database, a GraphRAG tool, or a vertical business application. It aims to combine:
+
+- **Causal reasoning**: causal tracing, intervention analysis, counterfactual reasoning, and root-cause queries.
+- **Evidence provenance**: every derived fact and decision can be traced back to original source files, locations, versions, and processing steps.
+- **Conflict resolution**: multi-source contradictions are detected, preserved, resolved, and audited.
+- **Knowledge graph infrastructure**: temporal property graphs, rule modeling, graph traversal, and graph-vector hybrid retrieval.
+- **Private deployment**: a lightweight Rust-oriented architecture for embedded or private environments.
+
+## Architecture
+
+Causis is organized into eight major modules:
+
+```text
+API Layer
+  REST / GraphQL / SDK / CLI
+
+Trusted Explanation and Audit
+  Evidence chains, reports, graph visualization, audit logs
+
+Causal Inference and Query Engine
+  Causal tracing, intervention, counterfactuals, root cause
+
+Conflict Resolution
+  Rule-based, quality-weighted, LLM-assisted, human-in-the-loop
+
+Entity Disambiguation and Relation Completion
+  Fuzzy entity matching, semantic matching, link prediction
+
+Knowledge Graph
+  Temporal property graph, Cypher/SQL, graph-vector retrieval
+
+Fact Zone
+  Cleaning, normalization, quality scoring, conflict marking
+
+Evidence Lake
+  Immutable raw evidence, metadata, provenance, version snapshots
+
+Multi-source Ingest
+  Documents, databases, object storage, streams
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    接入层 (Access Layer)                       │
-│  REST API │ GraphQL │ WebSocket │ SDK (Python/JS)             │
-├─────────────────────────────────────────────────────────────┤
-│                    服务层 (Service Layer)                      │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────────┐  │
-│  │查询编排  │ │因果推理  │ │解释生成  │ │冲突协调引擎   │  │
-│  │Orchestr. │ │Causal    │ │Explain.  │ │Reconciliation │  │
-│  │          │ │Inference │ │Generator │ │               │  │
-│  └──────────┘ └──────────┘ └──────────┘ └───────────────┘  │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────────┐  │
-│  │多模态抽取│ │实体对齐  │ │规则引擎  │ │权限与审计     │  │
-│  │Extraction│ │Entity    │ │Rule      │ │Audit          │  │
-│  │          │ │Resolution│ │Engine    │ │               │  │
-│  └──────────┘ └──────────┘ └──────────┘ └───────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    存储层 (Storage Layer)                      │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────────┐  │
-│  │证据湖   │ │事实层    │ │知识图谱  │ │元数据与索引   │  │
-│  │Raw       │ │Facts     │ │Knowledge │ │Metadata       │  │
-│  │(lakeFS + │ │(Iceberg) │ │Graph     │ │Catalog        │  │
-│  │ MinIO)   │ │          │ │(KuzuDB)  │ │               │  │
-│  └──────────┘ └──────────┘ └──────────┘ └───────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    基础设施层                                   │
-│  容器编排 (K8s) │ 可观测性 │ 配置管理 │ CI/CD                │
-└─────────────────────────────────────────────────────────────┘
+
+## Module Overview
+
+| Module | Responsibility | Current design direction |
+| --- | --- | --- |
+| Multi-source ingest | Parse documents and connect structured data sources | Ingestor-Core, DocTor, Arrow streams |
+| Evidence lake | Store immutable raw evidence and metadata | RustFS, Apache Iceberg, provenance tables |
+| Fact zone | Normalize facts and mark conflicts | Polars, DuckDB/DataFusion, quality scoring |
+| Knowledge graph | Build temporal graph knowledge | LadybugDB, Cypher/SQL, vector search |
+| Entity disambiguation | Resolve ambiguous entities and complete relations | Rules, embeddings, ONNX/Candle, review APIs |
+| Conflict resolution | Decide trusted fact versions transparently | Four-layer resolution workflow |
+| Causal inference | Run formal causal queries | DeepCausality, why-rs, CIfly |
+| Explanation and audit | Produce evidence-backed explanations | Evidence chain builder, reports, audit logs |
+
+## MVP Direction
+
+The recommended first vertical slice is a traceable leave-approval decision workflow:
+
+1. Ingest policy documents and employee/approval data.
+2. Store original evidence with stable source anchors.
+3. Normalize facts and mark conflicts.
+4. Build a small temporal knowledge graph.
+5. Resolve approval-chain conflicts when needed.
+6. Run a causal trace query.
+7. Return an explanation with evidence links and audit records.
+
+This keeps the first milestone focused on the core value proposition: a decision that is computable, explainable, and traceable.
+
+## Repository Map
+
+```text
+docs/
+  000...008                    Module design documents
+  Causis ... v1.0.md           Architecture and development plan
+  商业模式.md                    Business model
+  竞品分析.md                    Competitor analysis
+  项目推进方案.md                Project execution plan
+  子项目/Runcible容器.md         Lightweight container subproject idea
+
+README.md                      English overview
+README-zh.md                   Chinese overview
 ```
 
----
+## Key Documents
 
-## 功能目录
+- [Architecture and development plan](docs/Causis%20架构与开发总体规划书%20v1.0.md)
+- [Multi-source ingest](docs/001、多源数据接入与适配.md)
+- [Evidence lake](docs/002.证据湖（原始层）设计说明书%20.md)
+- [Fact zone](docs/003、事实层（Fact%20Zone）.md)
+- [Knowledge graph](docs/004、知识图谱（推理层）.md)
+- [Entity disambiguation](docs/005、实体对齐与消歧.md)
+- [Conflict resolution](docs/006、冲突检测与协调.md)
+- [Causal inference](docs/007、因果推理与查询引擎.md)
+- [Trusted explanation and audit](docs/008、可信解释与审计.md)
 
-下面按八个模块展开，并标注核心能力、优先级（P0 = MVP必备，P1 = 增强版，P2 = 远期）、以及对应的架构验证参考。
+## Roadmap
 
-### 模块一：多源数据接入与适配
+The current planning documents describe three broad stages:
 
-| 编号  | 功能点             | 优先级 | 说明                                                         | 关键验证                          |
-| :---- | :----------------- | :----- | :----------------------------------------------------------- | :-------------------------------- |
-| F-1.1 | 非结构化文档适配器 | **P0** | PDF、Word、PPT、Excel的自动解析与文本/表格抽取，保留上下文结构（章节→段落→表格） | Unstructured.io已在工业界广泛使用 |
-| F-1.2 | 关系型数据库连接器 | **P0** | 通过JDBC/ODBC连接MySQL、PostgreSQL等，支持CDC增量同步        | Debezium CDC已成熟                |
-| F-1.3 | 云端对象存储接入   | **P1** | 接入S3兼容存储（MinIO、AWS S3等），定时拉取增量文件          | lakeFS原生支持S3                  |
-| F-1.4 | 实时消息流接入     | **P2** | 接入Kafka/Pulsar以支持实时事件                               | 视场景需要                        |
+1. **MVP validation**: implement one end-to-end decision scenario and prove evidence-backed causal tracing.
+2. **Platformization**: generalize APIs, SDKs, low-code tooling, and human review flows.
+3. **Ecosystem**: build a causal model marketplace, partner integrations, and industry templates.
 
-### 模块二：证据湖（原始层）
+## License
 
-| 编号  | 功能点             | 优先级 | 说明                                                         | 关键验证                                          |
-| :---- | :----------------- | :----- | :----------------------------------------------------------- | :------------------------------------------------ |
-| F-2.1 | 原始文件版本化存储 | **P0** | 所有原始文件（PDF、Word、DB快照等）以不可篡改方式存储，lakeFS管理版本，每次上传生成唯一commit_id | lakeFS社区已验证"format-agnostic version control" |
-| F-2.2 | 溯源元数据自动标注 | **P0** | 每个文件打入来源、时间戳、内容哈希等元数据                   | 参照W3C PROV规范                                  |
-| F-2.3 | 数据时间旅行       | **P1** | 基于lakeFS的commit/tag机制，可回溯任意历史版本               | lakeFS原生支持                                    |
-| F-2.4 | 分层存储与生命周期 | **P2** | 热数据在SSD，冷数据自动归档，降低存储成本                    | MinIO支持分层                                     |
-
-### 模块三：事实层（湖仓一体）
-
-| 编号  | 功能点               | 优先级 | 说明                                                         | 关键验证                                                     |
-| :---- | :------------------- | :----- | :----------------------------------------------------------- | :----------------------------------------------------------- |
-| F-3.1 | 结构化事实存储       | **P0** | 基于Apache Iceberg表格式，支持ACID事务、时间旅行、分区演进，所有表预设`_source`和`_lakefs_commit_id`溯源字段 | Netflix、Apple生产环境验证                                   |
-| F-3.2 | 多模态实体与关系抽取 | **P0** | 基于LLM从非结构化文档中抽取三元组（实体、关系、属性），强制LLM输出引用原始段落的溯源信息 | AAAI 2026跨源实体对齐研究已证明LLM在低资源实体对齐中的有效性 |
-| F-3.3 | 结构化数据虚拟映射   | **P1** | 关系型数据库表通过Schema映射自动转为事实表，保留原始主键作为溯源锚点 | 以DuckDB的外部表查询能力为参考                               |
-| F-3.4 | 数据质量度量         | **P1** | 为每条事实计算完整性、一致性、时效性等质量分数               | 可参考现有数据质量框架扩展                                   |
-
-### 模块四：知识图谱（推理层）
-
-| 编号  | 功能点                   | 优先级 | 说明                                                         | 关键验证                                                  |
-| :---- | :----------------------- | :----- | :----------------------------------------------------------- | :-------------------------------------------------------- |
-| F-4.1 | 带时间属性的知识图谱构建 | **P0** | 从事实层抽取实体和关系，构建属性图模型（节点+边+属性），支持"有效时间"区间，保留多版本不覆盖 | K-CAP 2025 WikiConflict数据集已验证多版本知识图谱的必要性 |
-| F-4.2 | 规则知识建模             | **P0** | 将制度文件中的逻辑（如审批规则）建模为图谱中的可执行规则节点 | 已有知识图谱规则系统专利进入行业应用                      |
-| F-4.3 | 多跳图遍历查询           | **P0** | 支持复杂条件感知的图遍历（如请假审批链的动态查找），毫秒级响应 | KuzuDB等嵌入式图数据库已验证此能力                        |
-| F-4.4 | 图与向量的混合检索       | **P1** | 将实体嵌入为向量，支持"先用语义检索定位候选实体，再用图遍历精确验证"的混合查询 | GraphRAG已在工业界初步验证                                |
-| F-4.5 | 因果边建模               | **P1** | 支持在知识图谱中显式建模因果关系（区别于关联关系），为后续因果推理提供基础 | 因果发现算法已有较充分的理论积累                          |
-
-### 模块五：实体对齐与消歧
-
-| 编号  | 功能点             | 优先级 | 说明                                                         | 关键验证                                             |
-| :---- | :----------------- | :----- | :----------------------------------------------------------- | :--------------------------------------------------- |
-| F-5.1 | 多阶段实体对齐管线 | **P0** | ①规则匹配（高置信度精确字段）→ ②向量相似度（模糊匹配）→ ③LLM辅助判断（低置信度歧义） | ICLR 2026提出DNC（双重噪声对应）模型已专门解决此问题 |
-| F-5.2 | 可审计的对齐决策   | **P0** | 每次对齐/不合并决策都保留完整依据和操作人，可回溯            | Causis核心差异化                                  |
-| F-5.3 | 实体质量可信度评分 | **P1** | 基于来源权威性、多源一致性计算可信度分数                     | 知识融合领域的经典方法                               |
-| F-5.4 | 缺失属性智能补全   | **P1** | 基于LLM的多模态事实生成，补全因模态不平衡导致的属性缺失      | AAAI 2026验证了此方法                                |
-
-### 模块六：冲突检测与协调
-
-| 编号  | 功能点           | 优先级 | 说明                                                         | 关键验证                              |
-| :---- | :--------------- | :----- | :----------------------------------------------------------- | :------------------------------------ |
-| F-6.1 | 多级冲突自动发现 | **P0** | ①模式冲突（违反完整性约束）→ ②语义冲突（多源同属性值不一致）→ ③推理冲突（规则推理结论与实际不一致） | WikiConflict数据集已验证多级冲突分类  |
-| F-6.2 | 冲突可视化标记   | **P0** | 将发现的冲突以可视化方式呈现，供人工排查                     | MVP最小可行做法                       |
-| F-6.3 | 协调策略编排     | **P1** | 提供协调策略库（权威性优先/时间优先/多源投票），支持用户自定义编排 | Palantir Gotham有类似"来源可信度"机制 |
-| F-6.4 | 冲突溯源完整保留 | **P0** | 所有协调决策保留完整决策过程，包括未被采纳的事实版本         | Causis"深度可解释性"的关键         |
-
-### 模块七：因果推理与查询引擎
-
-| 编号  | 功能点            | 优先级 | 说明                                                         | 关键验证                                |
-| :---- | :---------------- | :----- | :----------------------------------------------------------- | :-------------------------------------- |
-| F-7.1 | 自适应查询编排器  | **P0** | 自动判断查询意图（事实型/逻辑型/统计型），动态选择最优执行路径（图遍历/向量检索/聚合计算） | Causis核心差异化                     |
-| F-7.2 | 反事实推理        | **P1** | 支持"如果当时不采取X，Y会如何？"的假设推演，基于因果图结构计算干预效果 | 因果推断领域的成熟方法（Pearl因果框架） |
-| F-7.3 | 因果查询语言(CQL) | **P2** | 设计类似SQL的因果查询语言，支持FIND CAUSE OF / SIMULATE等指令 | 可参考微软DoWhy等因果推断工具的设计     |
-| F-7.4 | 查询成本优化      | **P1** | 根据查询复杂度自动选择模型大小和计算资源                     | 工程优化项                              |
-
-### 模块八：可信解释与审计
-
-| 编号  | 功能点             | 优先级 | 说明                                                         | 关键验证                      |
-| :---- | :----------------- | :----- | :----------------------------------------------------------- | :---------------------------- |
-| F-8.1 | 多跳推理路径可视化 | **P0** | 将推理过程（A→B→C→结论）可视化为可交互的图路径，用户可点击每个节点看证据 | Causis"深度可解释性"的核心 |
-| F-8.2 | 证据锚定与溯源回溯 | **P0** | 每个推理步骤都能追溯到原始文件的具体段落/单元格，附带lakeFS commit_id可定位到文件版本 | 利用证据湖的溯源能力          |
-| F-8.3 | 审计日志全记录     | **P1** | 所有查询、决策、人工修正都记录为不可篡改的审计日志           | 企业级合规要求                |
-| F-8.4 | 决策报告自动生成   | **P1** | 自然语言解释 + 证据链 + 可视化图表，一键导出                 | 商业化价值                    |
-
----
-
-## 架构验证总结
-
-| 编号  | 功能点            | 优先级 | 已有理论支撑            | 已有工程支撑              |
-| :---- | :---------------- | :----- | :---------------------- | :------------------------ |
-| F-2.1 | 文件版本化存储    | P0     | —                       | lakeFS生产验证            |
-| F-3.1 | Iceberg结构化存储 | P0     | —                       | Netflix/Apple验证         |
-| F-3.2 | LLM多模态抽取     | P0     | AAAI 2026跨源实体对齐   | Unstructured.io + LLM实践 |
-| F-4.1 | 多版本知识图谱    | P0     | K-CAP 2025 WikiConflict | KuzuDB/Neo4j + APOC       |
-| F-5.1 | 实体对齐管线      | P0     | ICLR 2026 DNC模型       | PyTorch + 向量数据库      |
-| F-6.1 | 多级冲突检测      | P0     | WikiConflict三级分类    | 模式匹配 + 语义比对       |
-
-功能目录中**标记P0的部分构成MVP完整形态**，P1/P2将在验证后逐步添加。这是我们讨论Causis以来第一次拥有一个完整的顶层设计，它汇集了之前所有探讨的精华。
-
----
-
-现在，可以逐个深入了。八个模块中，模块二（证据湖）和模块三（事实层）我们已经讨论得比较充分；模块五（实体对齐）和模块六（冲突检测）是技术难点；模块七（因果推理）是核心竞争力。
-
-你想先从哪个模块开始深入实现方案？
+The intended direction is open source with permissive licensing, but this repository does not yet include a license file. Add one before publishing implementation code.
