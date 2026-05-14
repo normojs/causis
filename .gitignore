@@ -1,0 +1,15 @@
+# Local AI assistant artifacts
+codex/
+.codex/
+.agents/
+.cursor/
+.claude/
+.rules/
+rules/
+*.rule
+*.rules
+
+# OS/editor noise
+.DS_Store
+*.swp
+*.swo
