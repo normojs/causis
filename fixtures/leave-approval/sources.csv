@@ -1,0 +1,5 @@
+source_id,uri,description
+hr_system,fixtures/leave-approval/hr-system.csv,Authoritative HR system snapshot
+manual_sheet,fixtures/leave-approval/manual-manager-sheet.csv,Manual manager override sheet
+oa_system,fixtures/leave-approval/oa-status.csv,OA current status snapshot
+policy_doc,fixtures/leave-approval/leave-policy.md,Leave approval policy

@@ -13,3 +13,6 @@ rules/
 .DS_Store
 *.swp
 *.swo
+
+# Rust build output
+target/

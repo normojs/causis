@@ -1,0 +1,2 @@
+request_id,applicant_id,leave_type,days,anchor
+LR-2026-001,Employee:E001,annual_leave,2,leave-request.json#LR-2026-001

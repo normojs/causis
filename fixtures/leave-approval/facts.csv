@@ -1,0 +1,9 @@
+source_id,entity_id,attribute,value,value_type,authority,anchor
+hr_system,Employee:E001,name,Zhang San,text,100,hr-system.csv#row=1
+hr_system,Employee:E001,reports_to,Employee:E002,entity,100,hr-system.csv#row=1:reports_to
+manual_sheet,Employee:E001,reports_to,Employee:E004,entity,40,manual-manager-sheet.csv#row=7:reports_to
+hr_system,Employee:E002,name,Li Si,text,100,hr-system.csv#row=2
+oa_system,Employee:E002,status,business_trip,text,90,oa-status.csv#row=2:status
+hr_system,Employee:E002,delegate,Employee:E003,entity,100,hr-system.csv#row=2:delegate
+hr_system,Employee:E003,name,Zhao Liu,text,100,hr-system.csv#row=3
+policy_doc,Policy:LeaveApproval,fallback_rule,fallback_to_delegate,text,100,leave-policy.md#section=5.2

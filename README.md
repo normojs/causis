@@ -10,7 +10,7 @@ It is designed as **Causal as a Service** infrastructure: a foundation that deve
 
 ## Status
 
-Causis is currently in the architecture and planning stage. This repository contains product strategy, module design, competitor analysis, and implementation planning documents. Runtime code and package scaffolding have not been added yet.
+Causis has moved from architecture-only planning into the first implementation milestone. The repository now contains planning documents, a minimal Rust workspace, `causis-core` domain types, a `causis-cli` demo runner, and a deterministic leave-approval fixture.
 
 ## What Causis Is
 
@@ -85,6 +85,13 @@ This keeps the first milestone focused on the core value proposition: a decision
 ## Repository Map
 
 ```text
+crates/
+  causis-core                    Core IDs, facts, provenance, demo pipeline
+  causis-cli                     Local CLI demo runner
+
+fixtures/
+  leave-approval                 Deterministic P0 demo data
+
 docs/
   000...008                    Module design documents
   Causis ... v1.0.md           Architecture and development plan
@@ -121,6 +128,17 @@ The current planning documents describe three broad stages:
 2. **Platformization**: generalize APIs, SDKs, low-code tooling, and human review flows.
 3. **Ecosystem**: build a causal model marketplace, partner integrations, and industry templates.
 
+## Development Quick Start
+
+The first implementation milestone is a local, deterministic leave-approval demo. It does not require RustFS, Iceberg, LadybugDB, Cube, or any external service.
+
+```bash
+cargo test --workspace
+cargo run -p causis-cli -- demo leave-approval
+```
+
+The demo loads `fixtures/leave-approval`, detects a manager conflict, resolves it with an authority-first rule, traces the approval path, and prints an evidence-backed explanation JSON.
+
 ## License
 
-The intended direction is open source with permissive licensing, but this repository does not yet include a license file. Add one before publishing implementation code.
+Causis is licensed under either [Apache License 2.0](LICENSE-APACHE) or [MIT License](LICENSE-MIT), at your option.
