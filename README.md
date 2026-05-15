@@ -102,6 +102,7 @@ README-zh.md                   Chinese overview
 - [Project master plan](docs/Causis%20项目总体规划.md)
 - [Development architecture and Cube evaluation](docs/开发架构优化与%20Cube%20集成评估.md)
 - [Development order and feature implementation plan](docs/开发顺序与功能实现规划.md)
+- [Architecture and feature final review](docs/架构与功能终审报告.md)
 - [Architecture and development plan](docs/Causis%20架构与开发总体规划书%20v1.0.md)
 - [Multi-source ingest](docs/001、多源数据接入与适配.md)
 - [Evidence lake](docs/002.证据湖（原始层）设计说明书%20.md)
