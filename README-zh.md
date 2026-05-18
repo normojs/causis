@@ -137,7 +137,7 @@ cargo test --workspace
 cargo run -p causis-cli -- demo leave-approval
 ```
 
-该 demo 会读取 `fixtures/leave-approval`，检测主管冲突，用权威优先规则裁决，追踪审批路径，并输出带证据链的解释 JSON。
+该 demo 会读取 `fixtures/leave-approval`，检测主管冲突，用权威优先规则裁决，追踪审批路径，打印带证据链的解释 JSON，并写入 `target/causis/leave-approval/explanation.json`。
 
 ## 许可证
 

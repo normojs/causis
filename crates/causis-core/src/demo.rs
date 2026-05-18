@@ -22,10 +22,7 @@ pub struct LeaveApprovalReport {
 
 impl LeaveApprovalReport {
     pub fn summary(&self) -> String {
-        format!(
-            "request {} should be approved by {}",
-            self.request_id, self.approver_id
-        )
+        format!("申请 {} 应由 {} 审批", self.request_id, self.approver_id)
     }
 
     pub fn to_json_pretty(&self) -> String {
@@ -97,44 +94,41 @@ pub fn run_leave_approval_demo(input_dir: impl AsRef<Path>) -> Result<LeaveAppro
         manager_id
     };
 
+    let manager_display = display_fact_value(&manager_fact);
+    let manager_status_display = display_fact_value(&manager_status_fact);
+    let delegate_display = display_fact_value(&delegate_fact);
+    let policy_display = display_fact_value(&policy_fact);
+
     let trace = Trace {
         id: TraceId::new(format!("trace-{}", leave_request.request_id)),
         steps: vec![
             TraceStep {
                 order: 1,
-                label: format!("{applicant_id} reports to {}", manager_fact.value.as_text()),
+                label: format!("{applicant_id} 的直属主管是 {manager_display}"),
                 fact_id: Some(manager_fact.id.clone()),
                 provenance_id: Some(manager_fact.provenance_id.clone()),
             },
             TraceStep {
                 order: 2,
-                label: format!(
-                    "{} current status is {}",
-                    manager_fact.value.as_text(),
-                    manager_status_fact.value.as_text()
-                ),
+                label: format!("{manager_display} 当前状态为 {manager_status_display}"),
                 fact_id: Some(manager_status_fact.id.clone()),
                 provenance_id: Some(manager_status_fact.provenance_id.clone()),
             },
             TraceStep {
                 order: 3,
-                label: format!("policy applies rule {}", policy_fact.value.as_text()),
+                label: format!("制度适用规则：{policy_display}"),
                 fact_id: Some(policy_fact.id.clone()),
                 provenance_id: Some(policy_fact.provenance_id.clone()),
             },
             TraceStep {
                 order: 4,
-                label: format!(
-                    "{} delegates approval to {}",
-                    manager_fact.value.as_text(),
-                    delegate_fact.value.as_text()
-                ),
+                label: format!("{manager_display} 将审批委托给 {delegate_display}"),
                 fact_id: Some(delegate_fact.id.clone()),
                 provenance_id: Some(delegate_fact.provenance_id.clone()),
             },
             TraceStep {
                 order: 5,
-                label: format!("final approver is {approver_id}"),
+                label: format!("最终审批人为 {approver_id}"),
                 fact_id: None,
                 provenance_id: None,
             },
@@ -210,13 +204,7 @@ fn read_facts(
         let entity_id = EntityId::new(columns[1].to_string());
         let attribute = columns[2].to_string();
         let value_raw = columns[3].to_string();
-        let value = if columns[4] == "entity" {
-            FactValue::Entity(EntityId::new(columns[3].to_string()))
-        } else if let Ok(value) = columns[3].parse::<i64>() {
-            FactValue::Number(value)
-        } else {
-            FactValue::Text(columns[3].to_string())
-        };
+        let value = parse_fact_value(&attribute, &value_raw, columns[4]);
         let authority = columns[5].parse::<u16>().unwrap_or(0);
         let provenance_id = ProvenanceId::new(format!("prov-{line}"));
 
@@ -347,9 +335,9 @@ fn resolve_conflicts(
             rejected_fact_ids,
             strategy: "authority_first".to_string(),
             reason: format!(
-                "selected {} from source {} with authority {}",
-                adopted.value.as_text(),
+                "依据权威优先策略，选择来源 {} 的值 {}（权威分 {}）",
                 adopted.source_id,
+                display_fact_value(adopted),
                 adopted.authority
             ),
         });
@@ -394,6 +382,36 @@ fn entity_value(value: &FactValue) -> EntityId {
         FactValue::Entity(value) => value.clone(),
         FactValue::Text(value) => EntityId::new(value.clone()),
         FactValue::Number(value) => EntityId::new(value.to_string()),
+    }
+}
+
+fn parse_fact_value(attribute: &str, value_raw: &str, value_type: &str) -> FactValue {
+    if value_type == "entity" {
+        FactValue::Entity(EntityId::new(value_raw.to_string()))
+    } else if let Some(normalized) = normalize_text_value(attribute, value_raw) {
+        FactValue::Text(normalized.to_string())
+    } else if let Ok(value) = value_raw.parse::<i64>() {
+        FactValue::Number(value)
+    } else {
+        FactValue::Text(value_raw.to_string())
+    }
+}
+
+fn normalize_text_value(attribute: &str, value_raw: &str) -> Option<&'static str> {
+    match (attribute, value_raw) {
+        ("status", "business_trip" | "出差") => Some("business_trip"),
+        ("fallback_rule", "fallback_to_delegate" | "转交代理人") => {
+            Some("fallback_to_delegate")
+        }
+        _ => None,
+    }
+}
+
+fn display_fact_value(fact: &Fact) -> String {
+    if fact.value_raw.is_empty() {
+        fact.value.as_text()
+    } else {
+        fact.value_raw.clone()
     }
 }
 
@@ -580,10 +598,7 @@ mod tests {
 
     #[test]
     fn leave_approval_demo_resolves_to_delegate() {
-        let fixtures = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .join("fixtures/leave-approval");
-        let report = run_leave_approval_demo(fixtures).expect("demo should run");
+        let report = run_leave_approval_demo(fixture_path()).expect("demo should run");
 
         assert_eq!(report.request_id, "LR-2026-001");
         assert_eq!(report.applicant_id.as_str(), "Employee:E001");
@@ -591,5 +606,66 @@ mod tests {
         assert_eq!(report.conflicts.len(), 1);
         assert_eq!(report.resolutions.len(), 1);
         assert!(report.to_json_pretty().contains("\"evidence_chain\""));
+    }
+
+    #[test]
+    fn leave_approval_demo_normalizes_chinese_fixture_values() {
+        let report = run_leave_approval_demo(fixture_path()).expect("demo should run");
+        let manager_status = report
+            .facts
+            .iter()
+            .find(|fact| fact.entity_id.as_str() == "Employee:E002" && fact.attribute == "status")
+            .expect("manager status fact should exist");
+        let policy_rule = report
+            .facts
+            .iter()
+            .find(|fact| {
+                fact.entity_id.as_str() == "Policy:LeaveApproval"
+                    && fact.attribute == "fallback_rule"
+            })
+            .expect("policy rule fact should exist");
+
+        assert_eq!(manager_status.value_raw, "出差");
+        assert_eq!(manager_status.value.as_text(), "business_trip");
+        assert_eq!(policy_rule.value_raw, "转交代理人");
+        assert_eq!(policy_rule.value.as_text(), "fallback_to_delegate");
+        assert!(
+            report
+                .summary()
+                .contains("申请 LR-2026-001 应由 Employee:E003 审批")
+        );
+        assert!(
+            report
+                .trace
+                .steps
+                .iter()
+                .any(|step| step.label.contains("出差"))
+        );
+        assert!(
+            report
+                .trace
+                .steps
+                .iter()
+                .any(|step| step.label.contains("转交代理人"))
+        );
+    }
+
+    #[test]
+    fn leave_approval_demo_covers_pipeline_outputs() {
+        let report = run_leave_approval_demo(fixture_path()).expect("demo should run");
+
+        assert_eq!(report.evidence.len(), 4);
+        assert_eq!(report.facts.len(), 8);
+        assert_eq!(report.provenance.len(), report.facts.len());
+        assert_eq!(report.trace.steps.len(), 5);
+        assert_eq!(report.conflicts[0].attribute, "reports_to");
+        assert_eq!(report.resolutions[0].strategy, "authority_first");
+        assert!(report.resolutions[0].reason.contains("权威优先"));
+    }
+
+    fn fixture_path() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .join("fixtures/leave-approval")
     }
 }

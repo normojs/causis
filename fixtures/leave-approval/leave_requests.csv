@@ -1,2 +1,2 @@
-request_id,applicant_id,leave_type,days,anchor
-LR-2026-001,Employee:E001,annual_leave,2,leave-request.json#LR-2026-001
+申请ID,申请人ID,请假类型,天数,证据锚点
+LR-2026-001,Employee:E001,年假,2,leave-request.json#LR-2026-001

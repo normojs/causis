@@ -137,7 +137,7 @@ cargo test --workspace
 cargo run -p causis-cli -- demo leave-approval
 ```
 
-The demo loads `fixtures/leave-approval`, detects a manager conflict, resolves it with an authority-first rule, traces the approval path, and prints an evidence-backed explanation JSON.
+The demo loads `fixtures/leave-approval`, detects a manager conflict, resolves it with an authority-first rule, traces the approval path, prints an evidence-backed explanation JSON, and writes it to `target/causis/leave-approval/explanation.json`.
 
 ## License
 

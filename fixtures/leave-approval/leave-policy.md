@@ -1,5 +1,5 @@
-# Leave Approval Policy
+# 请假审批制度
 
-## 5.2 Manager unavailable
+## 5.2 主管不可用
 
-If the direct manager is unavailable due to business travel, approval should be routed to the configured delegate.
+直属主管因出差等原因无法审批时，应将审批路由至已配置的代理审批人。

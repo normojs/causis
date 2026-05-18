@@ -1,5 +1,6 @@
 use causis_core::run_leave_approval_demo;
 use std::env;
+use std::fs;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -22,8 +23,16 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let fixture_dir = fixture_dir(args.get(2));
     let report = run_leave_approval_demo(&fixture_dir)?;
+    let explanation = report.to_json_pretty();
+    let output_path = default_output_path();
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(&output_path, &explanation)?;
+
     println!("{}", report.summary());
-    println!("{}", report.to_json_pretty());
+    println!("explanation written to {}", output_path.display());
+    println!("{explanation}");
     Ok(())
 }
 
@@ -37,4 +46,8 @@ fn print_usage() {
     println!();
     println!("Usage:");
     println!("  causis demo leave-approval [fixture-dir]");
+}
+
+fn default_output_path() -> PathBuf {
+    PathBuf::from("target/causis/leave-approval/explanation.json")
 }

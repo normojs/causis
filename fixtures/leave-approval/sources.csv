@@ -1,5 +1,5 @@
-source_id,uri,description
-hr_system,fixtures/leave-approval/hr-system.csv,Authoritative HR system snapshot
-manual_sheet,fixtures/leave-approval/manual-manager-sheet.csv,Manual manager override sheet
-oa_system,fixtures/leave-approval/oa-status.csv,OA current status snapshot
-policy_doc,fixtures/leave-approval/leave-policy.md,Leave approval policy
+来源ID,资源路径,描述
+hr_system,fixtures/leave-approval/hr-system.csv,权威人事系统快照
+manual_sheet,fixtures/leave-approval/manual-manager-sheet.csv,手工主管调整表
+oa_system,fixtures/leave-approval/oa-status.csv,OA 当前状态快照
+policy_doc,fixtures/leave-approval/leave-policy.md,请假审批制度
